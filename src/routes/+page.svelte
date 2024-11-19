@@ -64,8 +64,8 @@
                 return;
             }
 
-            // Redirect to email verification page
-            goto('/verify-email');
+            // Changed from /verify-email to /check-email
+            goto('/check-email');
 
         } catch (error) {
             errors.general = 'An error occurred during registration';
