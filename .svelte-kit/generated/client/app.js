@@ -12,7 +12,7 @@ export const server_loads = [];
 
 export const dictionary = {
 		"/": [2],
-		"/check-email": [3],
+		"/check-email": [~3],
 		"/verify-email": [4]
 	};
 

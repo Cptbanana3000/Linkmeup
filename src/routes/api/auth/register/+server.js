@@ -6,7 +6,27 @@ import { sendVerificationEmail } from '$lib/utils/email.js';
 
 export async function POST({ request }) {
     try {
-        const { username, email, password } = await request.json();
+        const data = await request.json();
+        const { username, email, password } = data;
+
+        // Validate input
+        if (!username || !email || !password) {
+            return json({
+                errors: {
+                    general: 'All fields are required'
+                }
+            }, { status: 400 });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return json({
+                errors: {
+                    email: 'Invalid email format'
+                }
+            }, { status: 400 });
+        }
 
         // Check if user already exists
         const existingEmail = await findUserByEmail(email);
@@ -51,24 +71,20 @@ export async function POST({ request }) {
             }
         };
 
-        const result = await createUser(userData);
-
-        try {
-            await sendVerificationEmail(email, verificationToken);
-        } catch (emailError) {
-            console.error('Failed to send verification email:', emailError);
-            // Continue with registration response as email sending is non-critical
-        }
+        await createUser(userData);
+        await sendVerificationEmail(email, verificationToken);
 
         return json({
-            message: 'Registration successful. Please check your email to verify your account.',
-            emailSent: true
+            success: true,
+            message: 'Registration successful. Please check your email to verify your account.'
         });
 
     } catch (error) {
         console.error('Registration error:', error);
         return json({
-            message: 'An error occurred during registration'
+            errors: {
+                general: 'An error occurred during registration'
+            }
         }, { status: 500 });
     }
 } 

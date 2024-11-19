@@ -35,13 +35,14 @@
         errors = {};
 
         // Password validation
-        const passwordValidation = validatePassword(formData.password);
-        if (passwordValidation.length > 0) {
-            errors.password = passwordValidation;
+        const passwordValidations = validatePassword(formData.password);
+        if (passwordValidations.length > 0) {
+            errors.password = passwordValidations;
             loading = false;
             return;
         }
 
+        // Confirm password validation
         if (formData.password !== formData.confirmPassword) {
             errors.confirmPassword = 'Passwords do not match';
             loading = false;
@@ -51,23 +52,31 @@
         try {
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
-                body: JSON.stringify(formData),
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                    username: formData.username,
+                    email: formData.email,
+                    password: formData.password
+                }) // Only send necessary data
             });
 
             const data = await response.json();
+            console.log('Registration response:', data); // Add this for debugging
 
             if (!response.ok) {
-                errors = data.errors || { general: data.message };
+                errors = data.errors || { general: 'Registration failed' };
+                loading = false;
                 return;
             }
 
-            // Changed from /verify-email to /check-email
-            goto('/check-email');
+            if (data.success) {
+                window.location.href = '/check-email'; // Use window.location instead of goto
+            }
 
         } catch (error) {
+            console.error('Registration error:', error);
             errors.general = 'An error occurred during registration';
         } finally {
             loading = false;
