@@ -89,6 +89,7 @@
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Create your LinkMeUp Account
         </h2>
+       
     </div>
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -191,6 +192,12 @@
                         {loading ? 'Creating account...' : 'Create Account'}
                     </button>
                 </div>
+                <p class="mt-2 text-center text-sm text-gray-600">
+                    Already have an account?
+                    <a href="/login" class="font-medium text-primary hover:text-secondary" aria-label="Navigate to registration page">
+                        Login
+                    </a>
+                </p>
             </form>
 
             <div class="mt-6">

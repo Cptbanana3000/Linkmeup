@@ -45,4 +45,17 @@ export async function updateUserPassword(userId, hashedPassword) {
             }
         }
     );
+}
+
+export async function findUserByResetToken(resetToken) {
+    const db = await connectToDb();
+    return db.collection('users').findOne({ resetToken });
+}
+
+export async function updateUser(userId, updates) {
+    const db = await connectToDb();
+    return db.collection('users').updateOne(
+        { _id: userId },
+        { $set: { ...updates, updatedAt: new Date() } }
+    );
 } 

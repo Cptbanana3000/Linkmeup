@@ -1,0 +1,35 @@
+{
+	"/(protected)": [
+		"src/routes/(protected)/+layout.js"
+	],
+	"/": [],
+	"/api/auth/forgot-password": [
+		"src/routes/api/auth/forgot-password/+server.js"
+	],
+	"/api/auth/login": [
+		"src/routes/api/auth/login/+server.js"
+	],
+	"/api/auth/register": [
+		"src/routes/api/auth/register/+server.js"
+	],
+	"/api/auth/reset-password": [
+		"src/routes/api/auth/reset-password/+server.js"
+	],
+	"/api/auth/verify-email": [
+		"src/routes/api/auth/verify-email/+server.js"
+	],
+	"/api/dashboard/stats": [
+		"src/routes/api/dashboard/stats/+server.js"
+	],
+	"/check-email": [
+		"src/routes/check-email/+page.js",
+		"src/routes/check-email/+page.server.js"
+	],
+	"/(protected)/dashboard": [
+		"src/routes/(protected)/+layout.js"
+	],
+	"/forgot-password": [],
+	"/login": [],
+	"/reset-password": [],
+	"/verify-email": []
+}
