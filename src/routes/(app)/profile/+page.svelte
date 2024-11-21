@@ -17,6 +17,12 @@
     let loading = false;
     let loadingProfile = true;
     let errors = {};
+    let uploading = false;
+    let toast = {
+        show: false,
+        message: '',
+        type: 'success' // or 'error'
+    };
 
     function getAuthToken() {
         const token = localStorage.getItem('token');
@@ -60,9 +66,17 @@
     async function handleAvatarChange(event) {
         const file = event.target.files[0];
         if (file) {
+            const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+            if (file.size > MAX_SIZE) {
+                alert('Image must be less than 5MB');
+                return;
+            }
+            
+            uploading = true;
             avatarFile = file;
             // Show preview
             editForm.avatar = URL.createObjectURL(file);
+            uploading = false;
         }
     }
 
@@ -102,18 +116,30 @@
                 profile = { ...profile, ...data };
                 isEditing = false;
                 await loadProfile();
+                showToast('Profile updated successfully');
             } else if (response.status === 401) {
                 localStorage.removeItem('token');
                 goto('/login');
+            } else {
+                showToast('Failed to update profile', 'error');
             }
         } catch (error) {
             console.error('Error updating profile:', error);
-            if (error.response?.data?.errors) {
-                errors = error.response.data.errors;
-            }
+            showToast('An error occurred while updating profile', 'error');
         } finally {
             loading = false;
         }
+    }
+
+    function showToast(message, type = 'success') {
+        toast = {
+            show: true,
+            message,
+            type
+        };
+        setTimeout(() => {
+            toast = { ...toast, show: false };
+        }, 3000);
     }
 </script>
 
@@ -147,18 +173,24 @@
                 <div class="bg-white rounded-2xl p-4 lg:p-6 shadow-sm">
                     {#if !isEditing}
                         <div class="flex flex-col lg:flex-row items-center lg:items-start space-y-4 lg:space-y-0 lg:space-x-4">
-                            <div class="relative" aria-label="Profile picture">
-                                {#if profile.avatar}
-                                    <img 
-                                        src={profile.avatar} 
-                                        alt="Profile" 
-                                        class="w-24 h-24 rounded-full object-cover"
+                            <div class="relative">
+                                {#if uploading}
+                                    <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                                        <div class="animate-spin rounded-full h-6 w-6 border-2 border-white"></div>
+                                    </div>
+                                {/if}
+                                {#if profile.avatar?.url || profile.avatar}
+                                    <img
+                                        src={typeof profile.avatar === 'string' ? profile.avatar : profile.avatar.url}
+                                        alt="Profile avatar"
+                                        class="h-24 w-24 rounded-full object-cover"
+                                        loading="lazy"
                                     />
                                 {:else}
-                                    <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
-                                        <svg class="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                                        </svg>
+                                    <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
+                                        <span class="text-gray-500 text-2xl">
+                                            {profile.username?.[0]?.toUpperCase() || '?'}
+                                        </span>
                                     </div>
                                 {/if}
                             </div>
@@ -196,12 +228,26 @@
                     {:else}
                         <form on:submit|preventDefault={handleEditSubmit} class="space-y-4">
                             <div class="flex items-start space-x-4">
-                                <div class="relative" aria-label="Profile picture">
-                                    <img 
-                                        src={editForm.avatar} 
-                                        alt="Profile" 
-                                        class="w-24 h-24 rounded-full object-cover"
-                                    />
+                                <div class="relative">
+                                    {#if uploading}
+                                        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                                            <div class="animate-spin rounded-full h-6 w-6 border-2 border-white"></div>
+                                        </div>
+                                    {/if}
+                                    {#if editForm.avatar?.url || editForm.avatar}
+                                        <img 
+                                            src={avatarFile ? URL.createObjectURL(avatarFile) : 
+                                                (typeof editForm.avatar === 'string' ? editForm.avatar : editForm.avatar.url)} 
+                                            alt="Profile" 
+                                            class="h-24 w-24 rounded-full object-cover"
+                                        />
+                                    {:else}
+                                        <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
+                                            <span class="text-gray-500 text-2xl">
+                                                {editForm.username?.[0]?.toUpperCase() || '?'}
+                                            </span>
+                                        </div>
+                                    {/if}
                                     <input 
                                         type="file" 
                                         accept="image/*"
@@ -276,6 +322,15 @@
                 </div>
             </div>
         </main>
+    </div>
+{/if}
+
+{#if toast.show}
+    <div 
+        class="fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg text-white {toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} transition-opacity duration-300"
+        role="alert"
+    >
+        {toast.message}
     </div>
 {/if} 
 

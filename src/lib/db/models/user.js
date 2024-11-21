@@ -21,9 +21,9 @@ const userSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
-    avatar: { 
-        type: String,
-        default: null 
+    avatar: {
+        type: String,  // Just store the URL
+        default: null
     },
     bio: { 
         type: String,
