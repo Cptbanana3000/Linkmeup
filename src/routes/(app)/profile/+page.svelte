@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
+    import { validateProfile } from '$lib/utils/validation.js';
 
     let profile = {
         username: '',
@@ -15,6 +16,7 @@
     let avatarFile = null;
     let loading = false;
     let loadingProfile = true;
+    let errors = {};
 
     function getAuthToken() {
         const token = localStorage.getItem('token');
@@ -64,7 +66,17 @@
         }
     }
 
+    function validateForm() {
+        const { isValid, errors: validationErrors } = validateProfile(editForm);
+        errors = validationErrors;
+        return isValid;
+    }
+
     async function handleEditSubmit() {
+        if (!validateForm()) {
+            return;
+        }
+
         loading = true;
         try {
             const token = getAuthToken();
@@ -96,6 +108,9 @@
             }
         } catch (error) {
             console.error('Error updating profile:', error);
+            if (error.response?.data?.errors) {
+                errors = error.response.data.errors;
+            }
         } finally {
             loading = false;
         }
@@ -213,9 +228,12 @@
                                             type="text" 
                                             id="username"
                                             bind:value={editForm.username}
-                                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary focus:ring-primary {errors.username ? 'border-red-500' : ''}"
                                             aria-label="Edit username"
                                         />
+                                        {#if errors.username}
+                                            <p class="mt-1 text-sm text-red-600">{errors.username}</p>
+                                        {/if}
                                     </div>
                                     <div>
                                         <label for="bio" class="block text-sm font-medium text-gray-700">Bio</label>
@@ -223,9 +241,15 @@
                                             id="bio"
                                             bind:value={editForm.bio}
                                             rows="3"
-                                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary focus:ring-primary {errors.bio ? 'border-red-500' : ''}"
                                             aria-label="Edit bio"
                                         ></textarea>
+                                        {#if errors.bio}
+                                            <p class="mt-1 text-sm text-red-600">{errors.bio}</p>
+                                        {/if}
+                                        <p class="mt-1 text-sm text-gray-500">
+                                            {editForm.bio?.length || 0}/160 characters
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -256,4 +280,3 @@
 {/if} 
 
 
-<!-- additons hehe-->
