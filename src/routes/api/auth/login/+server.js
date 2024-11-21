@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { findUserByEmail } from '$lib/db/models/user.js';
+import { generateToken } from '$lib/utils/auth.js';
 
 export async function POST({ request }) {
     try {
@@ -45,12 +46,8 @@ export async function POST({ request }) {
             }, { status: 401 });
         }
 
-        // Generate JWT token
-        const token = jwt.sign(
-            { userId: user._id },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+        // Generate token with the actual user ID
+        const token = generateToken(user._id);
 
         return json({
             success: true,

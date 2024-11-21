@@ -10,19 +10,21 @@ export const nodes = [
 	() => import('./nodes/6'),
 	() => import('./nodes/7'),
 	() => import('./nodes/8'),
-	() => import('./nodes/9')
+	() => import('./nodes/9'),
+	() => import('./nodes/10')
 ];
 
 export const server_loads = [];
 
 export const dictionary = {
 		"/": [3],
-		"/check-email": [~5],
-		"/(protected)/dashboard": [4,[2]],
-		"/forgot-password": [6],
-		"/login": [7],
-		"/reset-password": [8],
-		"/verify-email": [9]
+		"/check-email": [~6],
+		"/(protected)/dashboard": [5,[2]],
+		"/forgot-password": [7],
+		"/login": [8],
+		"/(app)/profile": [4],
+		"/reset-password": [9],
+		"/verify-email": [10]
 	};
 
 export const hooks = {

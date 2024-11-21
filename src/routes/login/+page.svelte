@@ -25,14 +25,14 @@
 
             const data = await response.json();
 
-            if (!response.ok) {
-                errors = data.errors || { general: data.message || 'Login failed' };
-                return;
+            if (response.ok && data.token) {
+                // Store the token in localStorage
+                localStorage.setItem('token', data.token);
+                // Redirect to profile page
+                window.location.href = '/profile';
+            } else {
+                errors.general = data.error || 'Login failed';
             }
-
-            // Store the token in localStorage
-            localStorage.setItem('authToken', data.token);
-            goto('/dashboard');
 
         } catch (error) {
             console.error('Login error:', error);

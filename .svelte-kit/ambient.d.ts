@@ -33,10 +33,11 @@ declare module '$env/static/private' {
 	export const EMAIL_FROM: string;
 	export const GMAIL_USER: string;
 	export const GMAIL_PASSWORD: string;
+	export const CLOUDINARY_CLOUD_NAME: string;
+	export const CLOUDINARY_API_KEY: string;
+	export const CLOUDINARY_API_SECRET: string;
 	export const ALLUSERSPROFILE: string;
 	export const APPDATA: string;
-	export const ChocolateyInstall: string;
-	export const ChocolateyLastPathUpdate: string;
 	export const CHROME_CRASHPAD_PIPE_NAME: string;
 	export const COLOR: string;
 	export const COLORTERM: string;
@@ -46,10 +47,14 @@ declare module '$env/static/private' {
 	export const ComSpec: string;
 	export const DriverData: string;
 	export const EDITOR: string;
-	export const EFC_7604: string;
 	export const FPS_BROWSER_APP_PROFILE_STRING: string;
 	export const FPS_BROWSER_USER_PROFILE_STRING: string;
 	export const GIT_ASKPASS: string;
+	export const GPU_FORCE_64BIT_PTR: string;
+	export const GPU_MAX_ALLOC_PERCENT: string;
+	export const GPU_MAX_HEAP_SIZE: string;
+	export const GPU_SINGLE_ALLOC_PERCENT: string;
+	export const GPU_USE_SYNC_OBJECTS: string;
 	export const HOME: string;
 	export const HOMEDRIVE: string;
 	export const HOMEPATH: string;
@@ -73,7 +78,6 @@ declare module '$env/static/private' {
 	export const npm_config_noproxy: string;
 	export const npm_config_npm_version: string;
 	export const npm_config_prefix: string;
-	export const npm_config_strict_ssl: string;
 	export const npm_config_userconfig: string;
 	export const npm_config_user_agent: string;
 	export const npm_execpath: string;
@@ -112,13 +116,14 @@ declare module '$env/static/private' {
 	export const USERDOMAIN_ROAMINGPROFILE: string;
 	export const USERNAME: string;
 	export const USERPROFILE: string;
+	export const VBOX_MSI_INSTALL_PATH: string;
 	export const VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
 	export const VSCODE_GIT_ASKPASS_MAIN: string;
 	export const VSCODE_GIT_ASKPASS_NODE: string;
 	export const VSCODE_GIT_IPC_HANDLE: string;
 	export const VSCODE_INJECTION: string;
 	export const windir: string;
-	export const ZES_ENABLE_SYSMAN: string;
+	export const __PSLockDownPolicy: string;
 }
 
 /**
@@ -157,10 +162,11 @@ declare module '$env/dynamic/private' {
 		EMAIL_FROM: string;
 		GMAIL_USER: string;
 		GMAIL_PASSWORD: string;
+		CLOUDINARY_CLOUD_NAME: string;
+		CLOUDINARY_API_KEY: string;
+		CLOUDINARY_API_SECRET: string;
 		ALLUSERSPROFILE: string;
 		APPDATA: string;
-		ChocolateyInstall: string;
-		ChocolateyLastPathUpdate: string;
 		CHROME_CRASHPAD_PIPE_NAME: string;
 		COLOR: string;
 		COLORTERM: string;
@@ -170,10 +176,14 @@ declare module '$env/dynamic/private' {
 		ComSpec: string;
 		DriverData: string;
 		EDITOR: string;
-		EFC_7604: string;
 		FPS_BROWSER_APP_PROFILE_STRING: string;
 		FPS_BROWSER_USER_PROFILE_STRING: string;
 		GIT_ASKPASS: string;
+		GPU_FORCE_64BIT_PTR: string;
+		GPU_MAX_ALLOC_PERCENT: string;
+		GPU_MAX_HEAP_SIZE: string;
+		GPU_SINGLE_ALLOC_PERCENT: string;
+		GPU_USE_SYNC_OBJECTS: string;
 		HOME: string;
 		HOMEDRIVE: string;
 		HOMEPATH: string;
@@ -197,7 +207,6 @@ declare module '$env/dynamic/private' {
 		npm_config_noproxy: string;
 		npm_config_npm_version: string;
 		npm_config_prefix: string;
-		npm_config_strict_ssl: string;
 		npm_config_userconfig: string;
 		npm_config_user_agent: string;
 		npm_execpath: string;
@@ -236,13 +245,14 @@ declare module '$env/dynamic/private' {
 		USERDOMAIN_ROAMINGPROFILE: string;
 		USERNAME: string;
 		USERPROFILE: string;
+		VBOX_MSI_INSTALL_PATH: string;
 		VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
 		VSCODE_GIT_ASKPASS_MAIN: string;
 		VSCODE_GIT_ASKPASS_NODE: string;
 		VSCODE_GIT_IPC_HANDLE: string;
 		VSCODE_INJECTION: string;
 		windir: string;
-		ZES_ENABLE_SYSMAN: string;
+		__PSLockDownPolicy: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
 	}
