@@ -149,25 +149,7 @@
     </div>
 {:else}
     <div class="min-h-screen bg-[#FDF8F4] flex flex-col lg:flex-row">
-        <aside class="w-full lg:w-64 fixed bottom-0 lg:static h-16 lg:h-full border-t lg:border-r border-gray-200 bg-white lg:bg-white z-50">
-            <div class="flex lg:flex-col h-full px-4 py-2 lg:py-6">
-                <div class="hidden lg:block mb-8">
-                    <h1 class="text-xl font-bold">LinkMeUp</h1>
-                </div>
-                
-                <nav class="flex-1 flex lg:block space-x-4 lg:space-x-0 lg:space-y-2 justify-around lg:justify-start" aria-label="Main navigation">
-                    <a 
-                        href="/home" 
-                        class="flex items-center px-4 py-2 text-gray-700 rounded-xl hover:bg-[#FDF8F4] transition-colors"
-                        aria-label="Go to home page"
-                    >
-                        Home
-                    </a>
-                    <!-- More menu items -->
-                </nav>
-            </div>
-        </aside>
-
+        
         <main class="flex-1 py-6 px-4 lg:px-6 mb-16 lg:mb-0 lg:ml-64">
             <div class="max-w-4xl mx-auto">
                 <div class="bg-white rounded-2xl p-4 lg:p-6 shadow-sm">
