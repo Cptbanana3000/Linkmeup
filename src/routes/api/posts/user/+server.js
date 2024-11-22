@@ -26,13 +26,13 @@ export async function GET({ request, locals }) {
         const hasMore = skip + posts.length < total;
 
         const transformedPosts = posts.map(post => ({
-            id: post._id.toString(),
+            _id: post._id.toString(),
             mediaUrl: post.mediaUrl,
             mediaUrls: post.mediaUrls || [],
             type: post.type,
             caption: post.caption,
-            likes: post.likes,
-            comments: post.comments,
+            likes: post.likes?.length || 0,
+            comments: post.comments?.length || 0,
             createdAt: post.createdAt
         }));
 

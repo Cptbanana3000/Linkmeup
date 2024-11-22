@@ -25,8 +25,10 @@
         type: 'success' // or 'error'
     };
 
-    let userPosts = []; // We'll fetch this data
-    
+    let userPosts = [];
+    let hasMore = false;
+    let loadingPosts = false;
+
     function getAuthToken() {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -71,18 +73,23 @@
         const token = localStorage.getItem('token');
         if (!token) return;
 
+        loadingPosts = true;
         try {
-            const response = await fetch('/api/posts/user', {
+            const response = await fetch('/api/posts/user?page=1&limit=9', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
             
             if (response.ok) {
-                userPosts = await response.json();
+                const data = await response.json();
+                userPosts = data.posts;
+                hasMore = data.hasMore;
             }
         } catch (error) {
             console.error('Error loading posts:', error);
+        } finally {
+            loadingPosts = false;
         }
     }
 
@@ -338,7 +345,11 @@
                 <div class="my-8 border-t"></div>
 
                 <!-- Posts Gallery -->
-                <PostGallery posts={userPosts} />
+                <PostGallery 
+                    posts={userPosts} 
+                    hasMore={hasMore} 
+                    loading={loadingPosts} 
+                />
             </div>
         </main>
     </div>
