@@ -2,14 +2,21 @@
     import { onMount } from 'svelte';
     import { fade } from 'svelte/transition';
     import { token } from '$lib/stores/auth.js';
+    import PostModal from './PostModal.svelte';
     
     let posts = [];
     let loading = true;
+    let loadingMore = false;
     let hasMore = true;
     let page = 1;
+    let loadMoreTrigger;
+    let selectedPost = null;
 
     async function loadPosts() {
+        if (loadingMore) return;
+        
         try {
+            loadingMore = true;
             const response = await fetch(`/api/posts/user?page=${page}&limit=9`, {
                 headers: {
                     'Authorization': `Bearer ${$token}`
@@ -28,12 +35,38 @@
             console.error('Error loading posts:', error);
         } finally {
             loading = false;
+            loadingMore = false;
         }
     }
 
+    // Intersection Observer setup
     onMount(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore && !loadingMore) {
+                    loadPosts();
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (loadMoreTrigger) {
+            observer.observe(loadMoreTrigger);
+        }
+
         loadPosts();
+
+        return () => {
+            if (loadMoreTrigger) {
+                observer.unobserve(loadMoreTrigger);
+            }
+        };
     });
+
+    // Handle post click to open modal
+    function handlePostClick(post) {
+        selectedPost = post;
+    }
 </script>
 
 <div class="space-y-6">
@@ -47,8 +80,12 @@
         <div class="grid grid-cols-3 gap-1 md:gap-4">
             {#each posts as post (post._id)}
                 <div 
-                    class="aspect-square relative group"
+                    class="aspect-square relative group cursor-pointer"
                     transition:fade
+                    on:click={() => handlePostClick(post)}
+                    on:keydown={(e) => e.key === 'Enter' && handlePostClick(post)}
+                    role="button"
+                    tabindex="0"
                 >
                     <img
                         src={post.mediaUrl}
@@ -75,6 +112,18 @@
                 </div>
             {/each}
         </div>
+
+        <!-- Infinite Scroll Trigger -->
+        {#if hasMore}
+            <div 
+                bind:this={loadMoreTrigger}
+                class="h-20 flex items-center justify-center"
+            >
+                {#if loadingMore}
+                    <div class="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+                {/if}
+            </div>
+        {/if}
     {:else}
         <div class="text-center py-8">
             <p class="text-gray-500">No posts yet</p>
@@ -86,4 +135,13 @@
             </a>
         </div>
     {/if}
-</div> 
+</div>
+
+{#if selectedPost}
+    <PostModal 
+        post={selectedPost}
+        posts={posts}
+        on:close={() => selectedPost = null}
+        on:update={({detail}) => selectedPost = detail.post}
+    />
+{/if} 
