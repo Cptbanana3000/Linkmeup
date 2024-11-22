@@ -2,8 +2,9 @@
     import { onMount } from 'svelte';
     import { fade } from 'svelte/transition';
     import { createIntersectionObserver } from '$lib/utils/intersectionObserver';
+    import { token } from '$lib/stores/auth.js';
     
-    export let userId;
+    // export let userId;
     
     let posts = [];
     let loading = true;
@@ -34,7 +35,12 @@
         }
 
         try {
-            const response = await fetch(`/api/posts/user?page=${page}&limit=9&sort=${sortOption}`);
+            const response = await fetch(`/api/posts/user?page=${page}&limit=9&sort=${sortOption}`, {
+                headers: {
+                    'Authorization': `Bearer ${$token}`
+                }
+            });
+            
             if (response.ok) {
                 const data = await response.json();
                 if (reset) {
@@ -44,6 +50,8 @@
                 }
                 hasMore = data.hasMore;
                 page += 1;
+            } else if (response.status === 401) {
+                window.location.href = '/login';
             }
         } catch (error) {
             console.error('Error loading posts:', error);

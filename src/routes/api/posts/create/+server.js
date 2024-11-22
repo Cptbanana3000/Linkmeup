@@ -11,10 +11,16 @@ export async function POST({ request, locals }) {
 
         const formData = await request.formData();
         const caption = formData.get('caption');
-        const mediaFile = formData.get('media');
         const mediaFiles = formData.getAll('mediaFiles');
 
-        // Handle single media upload
+        console.log('Received files:', mediaFiles.length);
+        console.log('Caption:', caption);
+
+        if (!mediaFiles.length) {
+            return json({ error: 'At least one media file is required' }, { status: 400 });
+        }
+
+        // Handle media upload
         let mediaUrl = '';
         let type = 'image';
         let mediaUrls = [];
@@ -25,19 +31,17 @@ export async function POST({ request, locals }) {
             const uploadPromises = mediaFiles.map(file => uploadMedia(file));
             mediaUrls = await Promise.all(uploadPromises);
             mediaUrl = mediaUrls[0]; // First image as cover
-        } else if (mediaFile) {
-            // Handle single file
-            mediaUrl = await uploadMedia(mediaFile);
-            type = mediaFile.type.startsWith('video/') ? 'video' : 'image';
         } else {
-            return json({ error: 'Media file is required' }, { status: 400 });
+            // Handle single file
+            mediaUrl = await uploadMedia(mediaFiles[0]);
+            type = mediaFiles[0].type.startsWith('video/') ? 'video' : 'image';
         }
 
         const post = new Post({
             userId,
             caption,
             mediaUrl,
-            mediaUrls,
+            mediaUrls: mediaUrls.length ? mediaUrls : [mediaUrl],
             type
         });
 

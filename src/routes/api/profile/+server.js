@@ -1,36 +1,27 @@
 import { json } from '@sveltejs/kit';
 import { findUserById } from '$lib/db/models/user.js';
-import mongoose from 'mongoose';
 
-export async function GET({ request, locals }) {
+export async function GET({ locals }) {
     try {
-        const userId = locals.user?.userId;
-        if (!userId) {
+        if (!locals.user?.userId) {
             return json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Validate userId format
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return json({ error: 'Invalid user ID' }, { status: 400 });
-        }
-
-        // Find user in database
-        const user = await findUserById(userId);
+        const user = await findUserById(locals.user.userId);
         if (!user) {
             return json({ error: 'User not found' }, { status: 404 });
         }
 
-        // Return user profile data
         return json({
             username: user.username,
-            avatar: user.avatar || null,
+            email: user.email,
             bio: user.bio || '',
+            avatar: user.avatar || null,
             followers: user.followers?.length || 0,
             following: user.following?.length || 0
         });
-
     } catch (error) {
-        console.error('Profile fetch error:', error);
-        return json({ error: 'Failed to fetch profile' }, { status: 500 });
+        console.error('Profile error:', error);
+        return json({ error: 'Server error' }, { status: 500 });
     }
 } 

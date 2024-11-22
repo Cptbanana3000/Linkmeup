@@ -27,7 +27,7 @@ export const dictionary = {
 		"/": [4],
 		"/(app)/bookmarks": [5,[2]],
 		"/check-email": [~13],
-		"/(app)/create": [6,[2]],
+		"/(app)/create": [~6,[2]],
 		"/(protected)/dashboard": [12,[3]],
 		"/(app)/explore": [7,[2]],
 		"/forgot-password": [14],
@@ -35,7 +35,7 @@ export const dictionary = {
 		"/login": [15],
 		"/(app)/messages": [9,[2]],
 		"/(app)/notifications": [10,[2]],
-		"/(app)/profile": [11,[2]],
+		"/(app)/profile": [~11,[2]],
 		"/reset-password": [16],
 		"/verify-email": [17]
 	};

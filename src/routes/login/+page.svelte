@@ -1,5 +1,5 @@
 <script>
-    import { enhance } from '$app/forms';
+    import { token } from '$lib/stores/auth.js';
     import { goto } from '$app/navigation';
 
     let formData = {
@@ -15,6 +15,8 @@
         errors = {};
 
         try {
+            console.log('1. Starting login attempt...');
+
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
@@ -24,16 +26,32 @@
             });
 
             const data = await response.json();
+            console.log('2. Received response:', data);
 
             if (response.ok && data.token) {
-                // Store the token in localStorage
+                console.log('3. Login successful, setting token...');
+                
+                // Set token in localStorage
                 localStorage.setItem('token', data.token);
-                // Redirect to profile page
+                console.log('4. Token set in localStorage');
+                
+                // Update store
+                token.set(data.token);
+                console.log('5. Token set in store');
+                
+                // Set token in cookie
+                document.cookie = `token=${data.token}; path=/; max-age=86400; samesite=strict`;
+                console.log('6. Token set in cookie');
+                
+                // Add a small delay
+                await new Promise(resolve => setTimeout(resolve, 100));
+                console.log('7. Starting navigation to profile...');
+                
                 window.location.href = '/profile';
             } else {
-                errors.general = data.error || 'Login failed';
+                console.log('Login failed:', data.errors);
+                errors = data.errors || { general: 'Login failed' };
             }
-
         } catch (error) {
             console.error('Login error:', error);
             errors.general = 'An error occurred during login';

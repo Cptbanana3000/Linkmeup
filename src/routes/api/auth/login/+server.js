@@ -7,9 +7,11 @@ import { generateToken } from '$lib/utils/auth.js';
 export async function POST({ request }) {
     try {
         const { email, password } = await request.json();
+        console.log('Login attempt for:', email); // Debug log
 
         // Validate input
         if (!email || !password) {
+            console.log('Missing credentials'); // Debug log
             return json({
                 errors: {
                     general: 'All fields are required'
@@ -20,18 +22,10 @@ export async function POST({ request }) {
         // Find user
         const user = await findUserByEmail(email);
         if (!user) {
+            console.log('User not found'); // Debug log
             return json({
                 errors: {
                     general: 'Invalid credentials'
-                }
-            }, { status: 401 });
-        }
-
-        // Check if user is verified
-        if (!user.verified) {
-            return json({
-                errors: {
-                    general: 'Please verify your email before logging in'
                 }
             }, { status: 401 });
         }
@@ -39,6 +33,7 @@ export async function POST({ request }) {
         // Verify password
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
+            console.log('Invalid password'); // Debug log
             return json({
                 errors: {
                     general: 'Invalid credentials'
@@ -46,8 +41,9 @@ export async function POST({ request }) {
             }, { status: 401 });
         }
 
-        // Generate token with the actual user ID
+        // Generate token
         const token = generateToken(user._id);
+        console.log('Generated token for user:', user._id); // Debug log
 
         return json({
             success: true,

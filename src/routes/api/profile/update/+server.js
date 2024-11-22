@@ -22,19 +22,23 @@ export async function POST({ request, locals }) {
         if (avatarFile && avatarFile.size > 0) {
             try {
                 const avatarData = await uploadAvatar(avatarFile);
-                updates.avatar = avatarData.url; // Just store the URL for now
+                updates.avatar = avatarData.url;
             } catch (error) {
+                console.error('Avatar upload error:', error);
                 return json({ error: 'Failed to upload avatar' }, { status: 400 });
             }
         }
 
         const updatedUser = await updateUser(userId, updates);
         
+        // Return the same structure as the GET endpoint
         return json({
-            success: true,
             username: updatedUser.username,
-            bio: updatedUser.bio,
-            avatar: updatedUser.avatar
+            email: updatedUser.email,
+            bio: updatedUser.bio || '',
+            avatar: updatedUser.avatar || null,
+            followers: updatedUser.followers?.length || 0,
+            following: updatedUser.following?.length || 0
         });
 
     } catch (error) {

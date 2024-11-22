@@ -49,8 +49,13 @@
             
             if (response.ok) {
                 const data = await response.json();
-                profile = data;
-                editForm = { ...data };
+                console.log('Profile data:', data); // Debug log
+                profile = {
+                    ...data,
+                    avatar: data.avatar, // Make sure avatar is properly assigned
+                    bio: data.bio || ''
+                };
+                editForm = { ...profile };
             } else if (response.status === 401) {
                 localStorage.removeItem('token');
                 goto('/login');
@@ -84,6 +89,7 @@
     onMount(() => {
         loadProfile();
         loadUserPosts();
+        console.log('Profile page mounted, token:', globalThis.$token);
     });
 
     async function handleAvatarChange(event) {
@@ -121,7 +127,7 @@
 
             const formData = new FormData();
             formData.append('username', editForm.username);
-            formData.append('bio', editForm.bio);
+            formData.append('bio', editForm.bio || '');
             if (avatarFile) {
                 formData.append('avatar', avatarFile);
             }
@@ -136,9 +142,10 @@
 
             if (response.ok) {
                 const data = await response.json();
-                profile = { ...profile, ...data };
+                console.log('Update response:', data); // Debug log
+                profile = { ...data };
+                editForm = { ...data };
                 isEditing = false;
-                await loadProfile();
                 showToast('Profile updated successfully');
             } else if (response.status === 401) {
                 localStorage.removeItem('token');
@@ -166,6 +173,7 @@
     }
 </script>
 
+
 {#if loadingProfile}
     <div class="min-h-screen bg-[#FDF8F4] flex items-center justify-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -184,9 +192,9 @@
                                         <div class="animate-spin rounded-full h-6 w-6 border-2 border-white"></div>
                                     </div>
                                 {/if}
-                                {#if profile.avatar?.url || profile.avatar}
+                                {#if profile.avatar}
                                     <img
-                                        src={typeof profile.avatar === 'string' ? profile.avatar : profile.avatar.url}
+                                        src={profile.avatar}
                                         alt="Profile avatar"
                                         class="h-24 w-24 rounded-full object-cover"
                                         loading="lazy"

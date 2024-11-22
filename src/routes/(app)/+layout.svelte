@@ -3,6 +3,7 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import { slide } from 'svelte/transition';
+    import { token } from '$lib/stores/auth.js';
     
     // Add user state
     let user = null;
@@ -91,27 +92,39 @@
     }
 
     async function loadUser() {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            goto('/login');
+        const storedToken = localStorage.getItem('token');
+        console.log('Layout: Loading user with token:', storedToken); // Debug log
+
+        if (!storedToken) {
+            console.log('Layout: No token found, redirecting to login'); // Debug log
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
             return;
         }
 
         try {
+            console.log('Layout: Fetching user profile...'); // Debug log
             const response = await fetch('/api/profile', {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${storedToken}`
                 }
             });
 
             if (response.ok) {
                 user = await response.json();
-            } else if (response.status === 401) {
-                localStorage.removeItem('token');
-                goto('/login');
+                console.log('Layout: User loaded successfully:', user); // Debug log
+            } else {
+                console.log('Layout: Failed to load user, status:', response.status); // Debug log
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    if (!window.location.pathname.includes('/login')) {
+                        window.location.href = '/login';
+                    }
+                }
             }
         } catch (error) {
-            console.error('Error loading user:', error);
+            console.error('Layout: Error loading user:', error);
         } finally {
             loading = false;
         }
