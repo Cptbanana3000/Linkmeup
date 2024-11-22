@@ -30,4 +30,48 @@ export async function uploadAvatar(file) {
         console.error('Cloudinary upload error:', error);
         throw new Error('Failed to upload image');
     }
+}
+
+export async function uploadMedia(file) {
+    try {
+        const fileBuffer = Buffer.from(await file.arrayBuffer());
+        const fileStr = `data:${file.type};base64,${fileBuffer.toString('base64')}`;
+
+        const result = await cloudinary.uploader.upload(fileStr, {
+            folder: 'posts',
+            resource_type: 'auto', // Automatically detect if it's image or video
+            transformation: [
+                { quality: 'auto:good' },
+                { fetch_format: 'auto' }
+            ]
+        });
+
+        return result.secure_url;
+    } catch (error) {
+        console.error('Cloudinary upload error:', error);
+        throw new Error('Failed to upload media');
+    }
+}
+
+export async function deleteMedia(publicId) {
+    try {
+        const result = await cloudinary.uploader.destroy(publicId);
+        return result.result === 'ok';
+    } catch (error) {
+        console.error('Cloudinary deletion error:', error);
+        throw new Error('Failed to delete media');
+    }
+}
+
+// Helper to extract public ID from URL
+export function getPublicIdFromUrl(url) {
+    try {
+        const urlParts = url.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        const publicId = filename.split('.')[0];
+        return `posts/${publicId}`; // Adjust folder name if needed
+    } catch (error) {
+        console.error('Error extracting public ID:', error);
+        return null;
+    }
 } 

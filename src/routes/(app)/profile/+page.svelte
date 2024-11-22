@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
     import { validateProfile } from '$lib/utils/validation.js';
+    import PostGallery from './components/PostGallery.svelte';
 
     let profile = {
         username: '',
@@ -24,6 +25,8 @@
         type: 'success' // or 'error'
     };
 
+    let userPosts = []; // We'll fetch this data
+    
     function getAuthToken() {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -59,8 +62,28 @@
         }
     }
 
+    async function loadUserPosts() {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const response = await fetch('/api/posts/user', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                userPosts = await response.json();
+            }
+        } catch (error) {
+            console.error('Error loading posts:', error);
+        }
+    }
+
     onMount(() => {
         loadProfile();
+        loadUserPosts();
     });
 
     async function handleAvatarChange(event) {
@@ -151,7 +174,7 @@
     <div class="min-h-screen bg-[#FDF8F4] flex flex-col lg:flex-row">
         
         <main class="flex-1 py-6 px-4 lg:px-6 mb-16 lg:mb-0 lg:ml-64">
-            <div class="max-w-4xl mx-auto">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="bg-white rounded-2xl p-4 lg:p-6 shadow-sm">
                     {#if !isEditing}
                         <div class="flex flex-col lg:flex-row items-center lg:items-start space-y-4 lg:space-y-0 lg:space-x-4">
@@ -302,6 +325,12 @@
                         </form>
                     {/if}
                 </div>
+
+                <!-- Divider -->
+                <div class="my-8 border-t"></div>
+
+                <!-- Posts Gallery -->
+                <PostGallery posts={userPosts} />
             </div>
         </main>
     </div>
