@@ -1,7 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { fade } from 'svelte/transition';
-    import { token } from '$lib/stores/auth.js';
+    import { token, user } from '$lib/stores/auth.js';
     import PostModal from './PostModal.svelte';
     
     let posts = [];
@@ -67,6 +67,17 @@
     function handlePostClick(post) {
         selectedPost = post;
     }
+
+    // Add this function to handle post updates from modal
+    function handlePostUpdate(event) {
+        const updatedPost = event.detail.post;
+        const index = posts.findIndex(p => p._id === updatedPost._id);
+        if (index !== -1) {
+            posts[index] = updatedPost;
+            posts = [...posts]; // Trigger reactivity
+            selectedPost = updatedPost; // Update the selected post in modal
+        }
+    }
 </script>
 
 <div class="space-y-6">
@@ -99,13 +110,13 @@
                                 <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"/>
                                 </svg>
-                                <span>{post.likes}</span>
+                                <span>{Array.isArray(post.likes) ? post.likes.length : 0}</span>
                             </div>
                             <div class="flex items-center">
                                 <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
                                 </svg>
-                                <span>{post.comments}</span>
+                                <span>{post.comments || 0}</span>
                             </div>
                         </div>
                     </div>
@@ -141,7 +152,8 @@
     <PostModal 
         post={selectedPost}
         posts={posts}
+        userId={$user?.userId}
         on:close={() => selectedPost = null}
-        on:update={({detail}) => selectedPost = detail.post}
+        on:update={handlePostUpdate}
     />
 {/if} 

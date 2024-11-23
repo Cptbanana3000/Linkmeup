@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { Post } from '$lib/db/models/post.js';
+import { Comment } from '$lib/db/models/comment.js';
 
 export async function GET({ request, locals }) {
     try {
@@ -23,21 +24,19 @@ export async function GET({ request, locals }) {
             Post.countDocuments({ userId })
         ]);
 
-        const hasMore = skip + posts.length < total;
-
-        const transformedPosts = posts.map(post => ({
-            _id: post._id.toString(),
-            mediaUrl: post.mediaUrl,
-            mediaUrls: post.mediaUrls || [],
-            type: post.type,
-            caption: post.caption,
-            likes: post.likes?.length || 0,
-            comments: post.comments?.length || 0,
-            createdAt: post.createdAt
+        const postsWithCounts = await Promise.all(posts.map(async (post) => {
+            const commentCount = await Comment.countDocuments({ postId: post._id });
+            return {
+                ...post,
+                comments: commentCount,
+                likes: Array.isArray(post.likes) ? post.likes : []
+            };
         }));
 
+        const hasMore = skip + posts.length < total;
+
         return json({
-            posts: transformedPosts,
+            posts: postsWithCounts,
             hasMore,
             total,
             page,

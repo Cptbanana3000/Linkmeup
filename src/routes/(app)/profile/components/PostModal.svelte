@@ -1,13 +1,131 @@
 <script>
     import { createEventDispatcher } from 'svelte';
     import { fade } from 'svelte/transition';
+    import { token } from '$lib/stores/auth.js';
+    import { timeAgo } from '$lib/utils/timeAgo.js';
     
     export let post;
     export let posts = [];
+    export let userId;
     
     const dispatch = createEventDispatcher();
     
     let currentIndex = posts.findIndex(p => p._id === post._id);
+    $: currentPost = posts[currentIndex];
+    $: isLiked = Array.isArray(currentPost?.likes) && currentPost.likes.includes(userId);
+
+    let comments = [];
+    let commentText = '';
+    let isSubmittingComment = false;
+
+    async function loadComments() {
+        try {
+            const response = await fetch(
+                `/api/posts/${currentPost._id}/comments`,
+                {
+                    headers: { 'Authorization': `Bearer ${$token}` }
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                comments = data.comments;
+            }
+        } catch (error) {
+            console.error('Error loading comments:', error);
+        }
+    }
+
+    async function handleComment(event) {
+        event.preventDefault();
+        if (!commentText.trim() || isSubmittingComment) return;
+
+        isSubmittingComment = true;
+        try {
+            const response = await fetch(`/api/posts/${currentPost._id}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${$token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: commentText.trim() })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                comments = [data.comment, ...comments];
+                commentText = '';
+                
+                // Update comment count in the post
+                currentPost.comments = (currentPost.comments || 0) + 1;
+                posts = [...posts];
+                dispatch('update', { post: currentPost });
+            }
+        } catch (error) {
+            console.error('Error posting comment:', error);
+        } finally {
+            isSubmittingComment = false;
+        }
+    }
+
+    async function deleteComment(commentId) {
+        try {
+            const response = await fetch(
+                `/api/posts/${currentPost._id}/comments/${commentId}`,
+                {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${$token}` }
+                }
+            );
+
+            if (response.ok) {
+                comments = comments.filter(c => c.id !== commentId);
+                
+                // Update comment count in the post
+                currentPost.comments = Math.max(0, (currentPost.comments || 0) - 1);
+                posts = [...posts];
+                dispatch('update', { post: currentPost });
+            }
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+        }
+    }
+
+    // Load comments when post changes
+    $: if (currentPost?._id) {
+        loadComments();
+    }
+
+    async function handleLike() {
+        try {
+            const response = await fetch(`/api/posts/${currentPost._id}/like`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${$token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Update the current post
+                currentPost.likes = data.likes;
+                
+                // Update the post in the posts array
+                const index = posts.findIndex(p => p._id === currentPost._id);
+                if (index !== -1) {
+                    posts[index] = { ...posts[index], likes: data.likes };
+                    posts = [...posts]; // Trigger reactivity
+                }
+                
+                // Emit update event
+                dispatch('update', { post: currentPost });
+            }
+        } catch (error) {
+            console.error('Error updating like:', error);
+        }
+    }
 
     function next() {
         if (currentIndex < posts.length - 1) {
@@ -29,10 +147,9 @@
         if (event.key === 'Escape') dispatch('close');
     }
 
-    function handleBackdropClick(e) {
-        if (e.target === e.currentTarget) {
-            dispatch('close');
-        }
+    // Add this helper function
+    function getTimeAgo(date) {
+        return timeAgo(date);
     }
 </script>
 
@@ -45,7 +162,7 @@
     <!-- Backdrop -->
     <div 
         class="absolute inset-0 bg-black bg-opacity-75"
-        on:click={handleBackdropClick}
+        on:click={() => dispatch('close')}
         role="presentation"
     ></div>
 
@@ -130,46 +247,109 @@
 
                 <!-- Details Section -->
                 <section 
-                    class="w-1/3 p-4 border-l overflow-y-auto"
+                    class="w-1/3 p-4 border-l flex flex-col h-full"
                     aria-label="Post details"
                 >
-                    <h2 id="post-details-title" class="text-xl font-semibold mb-4">
-                        Post Details
-                    </h2>
-                    {#if posts[currentIndex].caption}
-                        <p class="text-gray-600 mb-4">
-                            {posts[currentIndex].caption}
-                        </p>
-                    {/if}
-                    
-                    <div 
-                        class="flex space-x-4 text-sm text-gray-500"
-                        role="group"
-                        aria-label="Post statistics"
-                    >
-                        <span class="flex items-center">
+                    <!-- Post Info -->
+                    <div class="mb-4">
+                        <h2 class="text-xl font-semibold">Post Details</h2>
+                        {#if currentPost.caption}
+                            <p class="text-gray-600 mt-2">
+                                {currentPost.caption}
+                            </p>
+                        {/if}
+                    </div>
+
+                    <!-- Likes and Comments Count -->
+                    <div class="flex space-x-4 text-sm text-gray-500 mb-4">
+                        <button
+                            type="button"
+                            class="flex items-center space-x-1 hover:text-red-500 transition-colors"
+                            on:click={handleLike}
+                        >
                             <svg 
-                                class="w-5 h-5 mr-1" 
-                                fill="currentColor" 
-                                viewBox="0 0 20 20"
-                                aria-hidden="true"
+                                class="w-6 h-6" 
+                                fill={isLiked ? 'currentColor' : 'none'} 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
                             >
-                                <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"/>
+                                <path 
+                                    stroke-linecap="round" 
+                                    stroke-linejoin="round" 
+                                    stroke-width="2" 
+                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                                />
                             </svg>
-                            {posts[currentIndex].likes} likes
-                        </span>
-                        <span class="flex items-center">
-                            <svg 
-                                class="w-5 h-5 mr-1" 
-                                fill="currentColor" 
-                                viewBox="0 0 20 20"
-                                aria-hidden="true"
-                            >
+                            <span>{currentPost?.likes?.length || 0} likes</span>
+                        </button>
+                        <div class="flex items-center space-x-1">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"/>
                             </svg>
-                            {posts[currentIndex].comments} comments
-                        </span>
+                            <span>{currentPost.comments || 0} comments</span>
+                        </div>
                     </div>
+
+                    <!-- Comments Section -->
+                    <div class="flex-grow overflow-y-auto">
+                        {#each comments as comment (comment.id)}
+                            <div class="flex items-start space-x-2 mb-4 group">
+                                <div class="flex-grow">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-semibold">{comment.user.username}</span>
+                                        {#if comment.user.id === userId}
+                                            <button
+                                                type="button"
+                                                class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500"
+                                                on:click={() => deleteComment(comment.id)}
+                                                aria-label="Delete comment"
+                                                title="Delete comment"
+                                            >
+                                                <svg 
+                                                    class="w-4 h-4" 
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24"
+                                                    aria-hidden="true"
+                                                >
+                                                    <path 
+                                                        stroke-linecap="round" 
+                                                        stroke-linejoin="round" 
+                                                        stroke-width="2" 
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                    />
+                                                </svg>
+                                            </button>
+                                        {/if}
+                                    </div>
+                                    <p class="text-gray-600">{comment.content}</p>
+                                    <span class="text-xs text-gray-400">
+                                        {getTimeAgo(comment.createdAt)}
+                                    </span>
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+
+                    <!-- Comment Form -->
+                    <form on:submit={handleComment} class="mt-4 border-t pt-4">
+                        <div class="flex space-x-2">
+                            <input
+                                type="text"
+                                bind:value={commentText}
+                                placeholder="Add a comment..."
+                                class="flex-grow px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                maxlength="500"
+                            />
+                            <button
+                                type="submit"
+                                disabled={!commentText.trim() || isSubmittingComment}
+                                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSubmittingComment ? 'Posting...' : 'Post'}
+                            </button>
+                        </div>
+                    </form>
                 </section>
             </div>
         </div>

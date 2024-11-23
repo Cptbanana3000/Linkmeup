@@ -9,24 +9,17 @@ const postSchema = new mongoose.Schema({
     caption: {
         type: String,
         trim: true,
-        maxLength: 2200  // Instagram's limit
+        maxLength: 2200
     },
     mediaUrl: {
         type: String,
         required: true
     },
-    mediaUrls: [{
-        type: String
+    likes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: []
     }],
-    type: {
-        type: String,
-        enum: ['image', 'video', 'multiple'],
-        required: true
-    },
-    likes: {
-        type: Number,
-        default: 0
-    },
     comments: {
         type: Number,
         default: 0
