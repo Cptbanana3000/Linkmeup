@@ -296,7 +296,13 @@
                             <div class="flex items-start space-x-2 mb-4 group">
                                 <div class="flex-grow">
                                     <div class="flex items-center justify-between">
-                                        <span class="font-semibold">{comment.user.username}</span>
+                                        <a 
+                                            href="/profile/{comment.user.username}"
+                                            class="font-semibold hover:underline"
+                                            data-sveltekit-reload
+                                        >
+                                            {comment.user.username}
+                                        </a>
                                         {#if comment.user.id === userId}
                                             <button
                                                 type="button"

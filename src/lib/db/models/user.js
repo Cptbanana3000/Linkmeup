@@ -102,4 +102,20 @@ export async function updateUser(userId, updates) {
         { ...updates },
         { new: true }
     );
+}
+
+export async function findUsersByUsernamePattern(query, excludeUserId) {
+    // Sanitize the query for regex
+    const sanitizedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    return await User.find({
+        username: { 
+            $regex: sanitizedQuery, 
+            $options: 'i'  // case-insensitive
+        },
+        _id: { $ne: excludeUserId }  // Exclude current user
+    })
+    .select('username avatar')  // Only select needed fields
+    .limit(10)
+    .lean();
 } 
